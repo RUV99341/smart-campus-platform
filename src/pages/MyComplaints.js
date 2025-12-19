@@ -1,0 +1,28 @@
+import React, { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { useAuth } from '../contexts/AuthContext';
+
+export default function MyComplaints(){
+  const { user } = useAuth();
+  const [items,setItems] = useState([]);
+
+  useEffect(()=>{
+    if(!user) return;
+    const q = query(collection(db,'complaints'), where('createdBy','==',user.uid), orderBy('createdAt','desc'));
+    const unsub = onSnapshot(q, snap=> setItems(snap.docs.map(d=>({id:d.id, ...d.data()}))));
+    return unsub;
+  },[user]);
+
+  return (
+    <div style={{padding:20}}>
+      <h2>My Complaints</h2>
+      {items.map(i=> (
+        <div key={i.id} style={{border:'1px solid #eee',padding:12,marginBottom:8}}>
+          <h4>{i.title}</h4>
+          <p>{i.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+}

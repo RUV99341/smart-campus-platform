@@ -1,0 +1,35 @@
+.landing-root{display:flex;min-height:100vh;align-items:center;justify-content:center}
+.landing-left{flex:1;background:linear-gradient(180deg,#fafafa,#ffffff);display:flex;align-items:center;justify-content:center;padding:24px}
+.landing-right{flex:1;display:flex;align-items:center;flex-direction:column;justify-content:center;padding:24px}
+
+.phone-mock{width:280px;height:560px;background:linear-gradient(180deg,#fff,#fafcff);border-radius:22px;box-shadow:0 18px 40px rgba(10,30,80,0.08);display:flex;align-items:center;justify-content:center;position:relative}
+.phone-cards{position:relative;width:220px;height:440px}
+.card{position:absolute;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;color:#444}
+.card-main{left:20px;top:0;width:180px;height:360px;transform:rotate(-4deg);background:linear-gradient(180deg,#ffffff,#fffdfa)}
+.card-back{width:140px;height:240px;top:80px}
+.card-left{left:0;transform:rotate(-14deg)}
+.card-right{right:0;transform:rotate(12deg)}
+
+/* Auth card styles */
+.auth-wrap{display:flex;flex-direction:column;align-items:center}
+.auth-card{width:350px;background:#fff;border:1px solid #ddd;padding:28px;border-radius:8px;margin-bottom:12px;text-align:center}
+.logo{font-family: 'Brush Script MT', cursive;font-size:48px;color:#111;margin-bottom:12px}
+.auth-form{display:flex;flex-direction:column}
+.auth-input{padding:10px 12px;margin-bottom:10px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+.password-row{position:relative}
+.show-pw{position:absolute;right:8px;top:8px;background:none;border:none;color:#3897f0;cursor:pointer}
+.btn-primary{background:#3897f0;color:#fff;border:none;padding:9px;border-radius:4px;font-weight:600;cursor:pointer}
+.or-divider{display:flex;align-items:center;gap:12px;color:#999;margin:12px 0}
+.or-divider:before,.or-divider:after{content:'';flex:1;height:1px;background:#eee}
+.btn-google{background:transparent;border:none;color:#385185;font-weight:600;cursor:pointer}
+.forgot{display:block;color:#00376b;margin-top:12px;font-size:14px}
+.signup-card{background:#fff;border:1px solid #ddd;padding:12px;border-radius:8px;width:350px;text-align:center}
+
+@media(max-width:900px){
+  .landing-root{flex-direction:column;padding:20px}
+  .landing-left{order:1}
+  .landing-right{order:2;margin-top:16px}
+  .auth-card,.signup-card{width:100%;max-width:360px}
+  .phone-mock{margin-bottom:12px}
+}
+
