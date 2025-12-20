@@ -21,6 +21,13 @@ export default function MyComplaints(){
         <div key={i.id} style={{border:'1px solid #eee',padding:12,marginBottom:8}}>
           <h4>{i.title}</h4>
           <p>{i.description}</p>
+          {i.image ? (
+            <div style={{ margin: '8px 0' }}>
+              <img src={i.image} alt={i.title} style={{ maxWidth: '100%', maxHeight: 300 }} />
+            </div>
+          ) : (
+            <div style={{ width: '100%', height: 120, background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', margin: '8px 0' }}>No image</div>
+          )}
         </div>
       ))}
     </div>
