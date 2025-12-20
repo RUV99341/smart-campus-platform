@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
         const publicPaths = ['/', '/signup', '/forgot-password', '/login'];
         const role = (snap && snap.exists() && snap.data().role) || 'student';
         if (publicPaths.includes(location.pathname)) {
-          if (role === 'admin') navigate('/admin');
+          if (role === 'admin') navigate('/admin-dashboard');
           else navigate('/home');
         }
       } else {

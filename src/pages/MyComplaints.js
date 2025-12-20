@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function MyComplaints(){
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function MyComplaints(){
       <h2>My Complaints</h2>
       {items.map(i=> (
         <div key={i.id} style={{border:'1px solid #eee',padding:12,marginBottom:8}}>
-          <h4>{i.title}</h4>
+          <h4><Link to={`/complaint/${i.id}`}>{i.title}</Link></h4>
           <p>{i.description}</p>
           {i.image ? (
             <div style={{ margin: '8px 0' }}>

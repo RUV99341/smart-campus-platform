@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import defaultProfile from '../assets/defaultProfile.svg';
 import './navbar.css';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, signOut: contextSignOut } = useAuth();
+  const [role, setRole] = useState(user?.role || '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -33,6 +36,24 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    async function fetchRole() {
+      if (!user || user.role) return;
+      try {
+        const uDoc = await getDoc(doc(db, 'users', user.uid));
+        if (mounted && uDoc.exists()) {
+          const data = uDoc.data();
+          setRole(data.role || '');
+        }
+      } catch (err) {
+        console.error('Failed to fetch user role', err);
+      }
+    }
+    fetchRole();
+    return () => { mounted = false; };
+  }, [user]);
+
   return (
     <nav className="scp-navbar">
       <div className="scp-container">
@@ -44,6 +65,9 @@ const Navbar = () => {
           <div className="scp-links">
             <Link to="/submit" className="scp-link">Submit Complaint</Link>
             <Link to="/feed" className="scp-link">Complaint Feed</Link>
+            { (user?.role === 'admin' || role === 'admin') && (
+              <Link to="/admin-dashboard" className="scp-link">Admin Dashboard</Link>
+            )}
           </div>
 
             <div className="scp-profile" ref={dropdownRef}>

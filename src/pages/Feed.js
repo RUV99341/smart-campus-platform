@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function Feed(){
   const [complaints,setComplaints] = useState([]);
@@ -28,7 +29,7 @@ export default function Feed(){
       <div>
         {complaints.map(c=> (
           <div key={c.id} style={{border:'1px solid #ddd',padding:12,marginBottom:8}}>
-            <h4>{c.title}</h4>
+            <h4><Link to={`/complaint/${c.id}`}>{c.title}</Link></h4>
             <p>{c.description}</p>
             {c.image ? (
               <div style={{ margin: '8px 0' }}>

@@ -3,15 +3,15 @@
 /dist
 
 # Firebase configuration and local emulator data
-.firebase/
-.firebaserc
-firebase-debug.log
-firebase-debug.*.log
-firebase.json
-firestore.indexes.json
-firestore.rules
-storage.rules
-*.local
+# .firebase/
+# .firebaserc
+# firebase-debug.log
+# firebase-debug.*.log
+# firebase.json
+# firestore.indexes.json
+# firestore.rules
+# storage.rules
+# *.local
 
 # Environment variables
 .env
