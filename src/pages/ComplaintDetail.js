@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ComplaintDetail(){
@@ -16,15 +16,17 @@ export default function ComplaintDetail(){
   const [adminNoteText, setAdminNoteText] = useState('');
   const [notes, setNotes] = useState([]);
 
-  useEffect(()=>{
+  useEffect(()=> {
     if(!id) return;
     const ref = doc(db,'complaints',id);
-    let unsubDoc = () => {};
-    (async ()=>{
-      const snap = await getDoc(ref);
-      if (snap.exists()) setComplaint({ id: snap.id, ...snap.data() });
+    let unsubDoc = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        setComplaint({ id: snap.id, ...snap.data() });
+      } else {
+        setComplaint(null);
+      }
       setLoading(false);
-    })();
+    });
 
     const q = query(collection(db,'complaints',id,'comments'), orderBy('createdAt','asc'));
     const unsubComments = onSnapshot(q, s => {
@@ -51,12 +53,12 @@ export default function ComplaintDetail(){
       unsubNotes = onSnapshot(nq, s => setNotes(s.docs.map(d=>({ id: d.id, ...d.data() }))));
     }
 
-    return ()=>{
+    return ()=> {
       unsubComments();
       unsubNotes();
       unsubDoc();
     };
-  },[id]);
+  },[id, user]);
 
   async function handleAddComment(e){
     e.preventDefault();
@@ -64,15 +66,12 @@ export default function ComplaintDetail(){
     if(!user || !user.uid) return setError('You must be signed in to comment');
     if(!commentText.trim()) return setError('Comment cannot be empty');
     try{
-      // optimistic UI: add a temporary comment locally
-      const temp = { id: `tmp-${Date.now()}`, text: commentText.trim(), createdBy: user.uid, createdAt: new Date(), pending: true };
-      setComments(prev => [...prev, temp]);
-      setCommentText('');
       await addDoc(collection(db,'complaints',id,'comments'),{
-        text: temp.text,
-        createdBy: temp.createdBy,
+        text: commentText.trim(),
+        createdBy: user.uid,
         createdAt: serverTimestamp()
       });
+      setCommentText('');
     }catch(err){
       console.error(err);
       setError('Failed to add comment');
@@ -81,10 +80,6 @@ export default function ComplaintDetail(){
 
   async function handleDeleteComment(commentId){
     if (!commentId) return;
-    // optimistic remove
-    setComments(prev => prev.filter(c => c.id !== commentId));
-    // if temp id, nothing to delete remotely
-    if (String(commentId).startsWith('tmp-')) return;
     try{
       await deleteDoc(doc(db,'complaints',id,'comments',commentId));
     }catch(err){
@@ -110,16 +105,40 @@ export default function ComplaintDetail(){
     }
   }
 
+  async function handleStatusChange(e) {
+    const newStatus = e.target.value;
+    if (!newStatus || !id) return;
+    const ref = doc(db, 'complaints', id);
+    try {
+      await updateDoc(ref, { status: newStatus });
+      // The onSnapshot listener will automatically update the UI
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      setError("Failed to update status. Please try again.");
+    }
+  }
+
   if (loading) return <div style={{padding:20}}>Loading...</div>;
   if (!complaint) return <div style={{padding:20}}>Complaint not found</div>;
 
   return (
     <div style={{ padding: 20 }}>
       <h2>{complaint.title}</h2>
-      <div style={{ color: '#666', marginBottom: 8 }}>{complaint.category} • {complaint.status || 'open'}</div>
+      <div style={{ color: '#666', marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+        <span>{complaint.category} • <span style={{textTransform: 'capitalize'}}>{complaint.status || 'open'}</span></span>
+        {user && user.role === 'admin' && (
+          <select value={complaint.status || 'open'} onChange={handleStatusChange} style={{ marginLeft: 10, padding: '2px 4px'}}>
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        )}
+      </div>
+
       {complaint.image ? (
         <div style={{ marginBottom: 12 }}>
-          <img src={complaint.image} alt={complaint.title} style={{ maxWidth: '100%', maxHeight: 480 }} />
+          <img src={complaint.image} alt={complaint.title} style={{ maxWidth: '100%', maxHeight: 480, borderRadius: 4 }} />
         </div>
       ) : null}
       <p style={{ whiteSpace: 'pre-wrap' }}>{complaint.description}</p>
@@ -129,41 +148,44 @@ export default function ComplaintDetail(){
         {comments.length === 0 && <div style={{ color: '#777' }}>No comments yet.</div>}
         <div>
           {comments.map(c=> (
-            <div key={c.id} style={{ borderBottom: '1px solid #eee', padding: '8px 0', opacity: c.pending ? 0.7 : 1 }}>
+            <div key={c.id} style={{ borderBottom: '1px solid #eee', padding: '8px 0'}}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 12, color: '#555' }}>{(usersMap[c.createdBy] && usersMap[c.createdBy].name) || c.createdBy} • {c.createdAt ? (c.createdAt.toDate ? c.createdAt.toDate().toLocaleString() : new Date(c.createdAt).toLocaleString()) : ''}</div>
+                <div style={{ fontSize: 12, color: '#555' }}>
+                  <b>{(usersMap[c.createdBy] && usersMap[c.createdBy].name) || 'User'}</b> • {c.createdAt ? (c.createdAt.toDate ? c.createdAt.toDate().toLocaleString() : new Date(c.createdAt).toLocaleString()) : ''}
+                </div>
                 <div>
-                  {(user && user.role === 'admin') && <button onClick={()=>handleDeleteComment(c.id)} style={{ marginLeft: 8 }}>Delete</button>}
+                  {(user && (user.role === 'admin' || user.uid === c.createdBy)) && <button onClick={()=>handleDeleteComment(c.id)} style={{ marginLeft: 8, padding: '2px 6px' }}>Delete</button>}
                 </div>
               </div>
-              <div style={{ marginTop: 6 }}>{c.text}</div>
+              <div style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{c.text}</div>
             </div>
           ))}
         </div>
 
         <form onSubmit={handleAddComment} style={{ marginTop: 12 }}>
           {error && <div style={{ color: 'crimson', marginBottom: 8 }}>{error}</div>}
-          <textarea value={commentText} onChange={e=>setCommentText(e.target.value)} rows={3} placeholder="Add a comment" style={{ width: '100%', padding:8 }} />
+          <textarea value={commentText} onChange={e=>setCommentText(e.target.value)} rows={3} placeholder="Add a public comment" style={{ width: '100%', padding:8, boxSizing: 'border-box' }} />
           <div style={{ marginTop: 8 }}>
             <button type="submit">Post Comment</button>
           </div>
         </form>
       </div>
+
       {user && user.role === 'admin' && (
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 24, background: '#f8f9fa', padding: 12, borderRadius: 4 }}>
           <h3>Internal Notes</h3>
           {notes.length === 0 && <div style={{ color: '#777' }}>No notes yet.</div>}
           <div>
             {notes.map(n=> (
               <div key={n.id} style={{ borderBottom: '1px solid #eee', padding: '8px 0' }}>
-                <div style={{ fontSize: 12, color: '#555' }}>{(usersMap[n.createdBy] && usersMap[n.createdBy].name) || n.createdBy} • {n.createdAt ? (n.createdAt.toDate ? n.createdAt.toDate().toLocaleString() : new Date(n.createdAt).toLocaleString()) : ''}</div>
-                <div style={{ marginTop: 6 }}>{n.text}</div>
+                <div style={{ fontSize: 12, color: '#555' }}><b>{(usersMap[n.createdBy] && usersMap[n.createdBy].name) || 'User'}</b> • {n.createdAt ? (n.createdAt.toDate ? n.createdAt.toDate().toLocaleString() : new Date(n.createdAt).toLocaleString()) : ''}</div>
+                <div style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{n.text}</div>
               </div>
             ))}
           </div>
 
           <form onSubmit={handleAddAdminNote} style={{ marginTop: 12 }}>
-            <textarea value={adminNoteText} onChange={e=>setAdminNoteText(e.target.value)} rows={3} placeholder="Add internal note" style={{ width: '100%', padding:8 }} />
+            <textarea value={adminNoteText} onChange={e=>setAdminNoteText(e.target.value)} rows={3} placeholder="Add an internal note for other admins" style={{ width: '100%', padding:8, boxSizing: 'border-box' }} />
             <div style={{ marginTop: 8 }}>
               <button type="submit">Add Note</button>
             </div>

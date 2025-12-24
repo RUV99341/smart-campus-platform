@@ -14,6 +14,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
+import UserManagement from './pages/UserManagement';
 
 function App(){
   return (
@@ -31,6 +32,7 @@ function App(){
           <Route path="/profile" element={<ProtectedRoute><DashboardLayout><Profile/></DashboardLayout></ProtectedRoute>} />
           <Route path="/signup" element={<Signup/>} />
           <Route path="/forgot-password" element={<ForgotPassword/>} />
+          <Route path="/user-management" element={<ProtectedRoute requireRole={'admin'}><DashboardLayout><UserManagement/></DashboardLayout></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

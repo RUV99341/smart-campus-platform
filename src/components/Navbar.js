@@ -66,7 +66,10 @@ const Navbar = () => {
             <Link to="/submit" className="scp-link">Submit Complaint</Link>
             <Link to="/feed" className="scp-link">Complaint Feed</Link>
             { (user?.role === 'admin' || role === 'admin') && (
-              <Link to="/admin-dashboard" className="scp-link">Admin Dashboard</Link>
+              <>
+                <Link to="/admin-dashboard" className="scp-link">Admin Dashboard</Link>
+                <Link to="/user-management" className="scp-link">User Management</Link>
+              </>
             )}
           </div>
 
