@@ -26,7 +26,7 @@ export default function ComplaintCard({ complaint, onToggleUpvote, currentUser }
     return ()=> unsubComments && unsubComments();
   },[complaint.id, complaint.createdBy]);
 
-  const hasUpvoted = complaint.upvotes && currentUser && complaint.upvotes.includes(currentUser.uid);
+  const hasUpvoted = Array.isArray(complaint.upvotes) && currentUser && complaint.upvotes.includes(currentUser.uid);
 
   return (
     <article className="card-complaint">

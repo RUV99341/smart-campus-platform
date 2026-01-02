@@ -1,19 +1,22 @@
-// Firebase initialization and exports
-import { initializeApp } from 'firebase/app';
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDuX0tV3Xv0iPexFU3vB13OnRK4JZhckWI",
-  authDomain: "smart-campus-platform-1800e.firebaseapp.com",
-  projectId: "smart-campus-platform-1800e",
-  storageBucket: "smart-campus-platform-1800e.firebasestorage.app",
-  messagingSenderId: "673065425954",
-  appId: "1:673065425954:web:fd553863161976b4c03e7b",
-  measurementId: "G-BPM2TV9NX6"
+  apiKey: "AIzaSyBVQwBwdFoapoGIGhgSB6qzDOyeap_GN40",
+  authDomain: "smartcampusplatform-ce718.firebaseapp.com",
+  projectId: "smartcampusplatform-ce718",
+  storageBucket: "smartcampusplatform-ce718.firebasestorage.app",
+  messagingSenderId: "688341377206",
+  appId: "1:688341377206:web:8f294c8536416978e6c617"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
