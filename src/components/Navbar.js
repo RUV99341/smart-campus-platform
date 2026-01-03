@@ -1,17 +1,40 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import defaultProfile from '../assets/defaultProfile.svg';
-import './navbar.css';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Menu,
+  MenuItem,
+  IconButton,
+  Avatar,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
+import { AccountCircle, ExitToApp } from '@mui/icons-material';
+import logo from '../assets/logo.png'; // Assuming you have a logo file
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, signOut: contextSignOut } = useAuth();
   const [role, setRole] = useState(user?.role || '');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = async () => {
     try {
@@ -20,21 +43,8 @@ const Navbar = () => {
     } catch (err) {
       console.error('Logout failed', err);
     }
+    handleClose();
   };
-
-  const toggleDropdown = () => {
-    setDropdownOpen(prev => !prev);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -51,60 +61,76 @@ const Navbar = () => {
       }
     }
     fetchRole();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   return (
-    <nav className="scp-navbar">
-      <div className="scp-container">
-        <div className="scp-brand" onClick={() => navigate('/home')} role="button">
-          Smart Campus
+    <AppBar position="static" color="default" elevation={1} sx={{ backgroundColor: 'white' }}>
+      <Toolbar>
+        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/home')}>
+          <img src={logo} alt="Smart Campus" style={{ height: 40, marginRight: 10 }} />
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'black' }}>
+            Smart Campus
+          </Typography>
+        </Box>
+        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+          <Button component={Link} to="/submit" color="inherit">Submit Complaint</Button>
+          <Button component={Link} to="/feed" color="inherit">Complaint Feed</Button>
+          {(user?.role === 'admin' || role === 'admin') && (
+            <>
+              <Button component={Link} to="/admin-dashboard" color="inherit">Admin Dashboard</Button>
+              <Button component={Link} to="/user-management" color="inherit">User Management</Button>
+            </>
+          )}
+        </Box>
+        <Box sx={{ flexGrow: 1 }} />
+
+        <div>
+          <IconButton
+            size="large"
+            aria-label="account of current user"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleMenu}
+            color="inherit"
+          >
+            <Avatar src={user?.avatar || user?.photoURL || defaultProfile} alt="Profile" />
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={open}
+            onClose={handleClose}
+          >
+            <MenuItem component={Link} to="/profile" onClick={handleClose}>
+              <ListItemIcon>
+                <AccountCircle fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Profile</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <ListItemIcon>
+                <ExitToApp fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Logout</ListItemText>
+            </MenuItem>
+          </Menu>
         </div>
-
-        <div className="scp-right">
-          <div className="scp-links">
-            <Link to="/submit" className="scp-link">Submit Complaint</Link>
-            <Link to="/feed" className="scp-link">Complaint Feed</Link>
-            { (user?.role === 'admin' || role === 'admin') && (
-              <>
-                <Link to="/admin-dashboard" className="scp-link">Admin Dashboard</Link>
-                <Link to="/user-management" className="scp-link">User Management</Link>
-              </>
-            )}
-          </div>
-
-            <div className="scp-profile" ref={dropdownRef}>
-              <div
-                className="scp-profile-btn"
-                onClick={toggleDropdown}
-                role="button"
-                tabIndex={0}
-                aria-haspopup="menu"
-                aria-expanded={dropdownOpen}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDropdown(); } }}
-              >
-                <span className="scp-profile-name">{user?.name || user?.displayName || 'Profile'}</span>
-                <img
-                  src={user?.avatar || user?.photoURL || defaultProfile}
-                  alt="Profile"
-                  className="scp-profile-img"
-                />
-              </div>
-
-            {dropdownOpen && (
-              <div className="scp-dropdown">
-                <p className="scp-user-name">{user?.name || user?.displayName || 'User'}</p>
-                <Link to="/profile" className="scp-dropdown-link" onClick={() => setDropdownOpen(false)}>View Profile</Link>
-                <button className="scp-logout-btn" onClick={handleLogout}>Logout</button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+      </Toolbar>
+    </AppBar>
   );
 };
-
-
 
 export default Navbar;
