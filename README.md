@@ -2,7 +2,9 @@
 
 A modern, AI-enhanced web application that enables students to submit, track, and resolve campus complaints while giving administrators tools to manage them efficiently. Built with a scalable Firebase backend and a dynamic React frontend.
 
-![Smart Campus Banner](src/assets/smart campus platform.png)
+![Smart Campus Banner]
+<img width="1536" height="1024" alt="smart campus platform" src="https://github.com/user-attachments/assets/ac03c1df-bde8-4984-a574-480de6f8cb8f" />
+
 
 ---
 
